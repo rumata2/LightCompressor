@@ -479,8 +479,9 @@ object Compressor {
             return Pair(width, height)
         }
 
-        val newWidth: Int
-        val newHeight: Int
+        val newWidth: Double
+        val newHeight: Double
+        val ratio: Double
 
         val maxDimension: Int = when (quality) {
             VideoQuality.VERY_HIGH -> {
@@ -498,14 +499,16 @@ object Compressor {
         }
 
         if (width >= height) {
-            newWidth = min(width, maxDimension)
-            newHeight = (newWidth / width) * height
+            newWidth = min(width, maxDimension).toDouble()
+            (newWidth / width).also { ratio = it }
+            newHeight = ratio * height
         } else {
-            newHeight = min(height, maxDimension)
-            newWidth = (newHeight / height) * width
+            newHeight = min(height, maxDimension).toDouble()
+            (newHeight / height).also { ratio = it }
+            newWidth = ratio * width
         }
 
-        return Pair(newWidth, newHeight)
+        return Pair(newWidth.toInt(), newHeight.toInt())
     }
 
     /**
