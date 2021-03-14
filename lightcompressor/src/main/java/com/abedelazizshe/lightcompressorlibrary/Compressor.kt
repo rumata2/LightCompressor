@@ -5,7 +5,8 @@ import android.os.Build
 import android.util.Log
 import java.io.File
 import java.nio.ByteBuffer
-import kotlin.math.roundToInt
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -442,24 +443,24 @@ object Compressor {
         Log.e("Compressor", message)
     }
 
-    /**
-     * Get fixed bitrate value based on the file's current bitrate
-     * @param bitrate file's current bitrate
-     * @return new smaller bitrate value
-     */
-    private fun getBitrate(
-        bitrate: Int,
-        quality: VideoQuality,
-    ): Int {
-
-        return when (quality) {
-            VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
-            VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
-            VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
-            VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
-            VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
-        }
-    }
+//    /**
+//     * Get fixed bitrate value based on the file's current bitrate
+//     * @param bitrate file's current bitrate
+//     * @return new smaller bitrate value
+//     */
+//    private fun getBitrate(
+//        bitrate: Int,
+//        quality: VideoQuality,
+//    ): Int {
+//
+//        return when (quality) {
+//            VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
+//            VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
+//            VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
+//            VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
+//            VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
+//        }
+//    }
 
     /**
      * Generate new width and height for source file
@@ -480,29 +481,28 @@ object Compressor {
 
         val newWidth: Int
         val newHeight: Int
-        val maxDimension: Int
 
-        when {
-            quality == VideoQuality.VERY_HIGH -> {
-                maxDimension = 1920
+        val maxDimension: Int = when (quality) {
+            VideoQuality.VERY_HIGH -> {
+                1920
             }
-            quality == VideoQuality.HIGH -> {
-                maxDimension = 1280
+            VideoQuality.HIGH -> {
+                1280
             }
-            quality == VideoQuality.MEDIUM -> {
-                maxDimension = 854
+            VideoQuality.MEDIUM -> {
+                854
             }
             else -> {
-                maxDimension = 480
+                480
             }
         }
 
         if (width >= height) {
-            newWidth = Math.min(width, maxDimension)
-            newHeight = (newWidth / width) * height;
+            newWidth = min(width, maxDimension)
+            newHeight = (newWidth / width) * height
         } else {
-            newHeight = Math.min(height, maxDimension)
-            newWidth = (newHeight / height) * width;
+            newHeight = min(height, maxDimension)
+            newWidth = (newHeight / height) * width
         }
 
         return Pair(newWidth, newHeight)
@@ -696,37 +696,42 @@ object Compressor {
         val compressFactor: Float
         val minCompressFactor: Float
         val maxBitrate: Int
-        if (Math.min(height, width) >= 1080) {
-            maxBitrate = 6800000
-            compressFactor = 1f
-            minCompressFactor = 1f
-        } else if (Math.min(height, width) >= 720) {
-            maxBitrate = 2621440
-            compressFactor = 1f
-            minCompressFactor = 1f
-        } else if (Math.min(height, width) >= 480) {
-            maxBitrate = 1000000
-            compressFactor = 0.8f
-            minCompressFactor = 0.9f
-        } else {
-            maxBitrate = 750000
-            compressFactor = 0.6f
-            minCompressFactor = 0.7f
+        when {
+            min(height, width) >= 1080 -> {
+                maxBitrate = 6800000
+                compressFactor = 1f
+                minCompressFactor = 1f
+            }
+            min(height, width) >= 720 -> {
+                maxBitrate = 2621440
+                compressFactor = 1f
+                minCompressFactor = 1f
+            }
+            min(height, width) >= 480 -> {
+                maxBitrate = 1000000
+                compressFactor = 0.8f
+                minCompressFactor = 0.9f
+            }
+            else -> {
+                maxBitrate = 750000
+                compressFactor = 0.6f
+                minCompressFactor = 0.7f
+            }
         }
         var remeasuredBitrate =
-            (originalBitrate / Math.min(
+            (originalBitrate / min(
                 originalHeight / height.toFloat(),
                 originalWidth / width.toFloat()
             )).toInt()
         remeasuredBitrate *= compressFactor.toInt()
         val minBitrate =
-            (getVideoBitrateWithFactor(minCompressFactor) / (1280f * 720f / (width * height))) as Int
+            (getVideoBitrateWithFactor(minCompressFactor) / (1280 * 720 / (width * height)))
         if (originalBitrate < minBitrate) {
             return remeasuredBitrate
         }
         return if (remeasuredBitrate > maxBitrate) {
             maxBitrate
-        } else Math.max(remeasuredBitrate, minBitrate)
+        } else max(remeasuredBitrate, minBitrate)
     }
 
     private fun getVideoBitrateWithFactor(f: Float): Int {
