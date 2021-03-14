@@ -7,6 +7,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.ceil
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -508,7 +509,7 @@ object Compressor {
             newWidth = ratio * width
         }
 
-        return Pair(newWidth.toInt(), newHeight.toInt())
+        return Pair(ceil(newWidth).toInt(), ceil(newHeight).toInt())
     }
 
     /**
