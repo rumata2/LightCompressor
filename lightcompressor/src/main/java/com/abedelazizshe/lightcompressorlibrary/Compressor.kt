@@ -7,7 +7,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.ceil
+import kotlin.math.round
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -509,7 +509,7 @@ object Compressor {
             newWidth = ratio * width
         }
 
-        return Pair(ceil(newWidth).toInt(), ceil(newHeight).toInt())
+        return Pair(round(newWidth).toInt(), round(newHeight).toInt())
     }
 
     /**
